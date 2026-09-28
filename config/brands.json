@@ -1,0 +1,28 @@
+{
+  "default": {
+    "name": "Shorts Kit",
+    "primary": "#1F2937",
+    "accent": "#F59E0B",
+    "bg": "#111827",
+    "text": "#FFFFFF",
+    "textMuted": "#D1D5DB",
+    "highlight": "#F59E0B",
+    "gradientColors": ["#111827", "#1F2937", "#374151"],
+    "cta": "",
+    "ctaUrl": "",
+    "ctaSubtext": ""
+  },
+  "example": {
+    "name": "Acme Notes",
+    "primary": "#2353D6",
+    "accent": "#5B8DFF",
+    "bg": "#0F1C33",
+    "text": "#FFFFFF",
+    "textMuted": "#C7D2E8",
+    "highlight": "#5B8DFF",
+    "gradientColors": ["#0F1C33", "#15233B", "#1C3A6B"],
+    "cta": "acmenotes.example",
+    "ctaUrl": "https://acmenotes.example/",
+    "ctaSubtext": "Try it free"
+  }
+}

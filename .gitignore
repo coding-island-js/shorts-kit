@@ -1,0 +1,26 @@
+# Secrets: never commit
+.env
+client_secret*.json
+token*.json
+
+# Generated per video
+work/
+output/
+uploads.csv
+remotion/public/*
+!remotion/public/.gitkeep
+
+# Your own inputs
+scripts-in/*
+!scripts-in/.gitkeep
+music/*
+!music/README.md
+
+# Tooling
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+.DS_Store
+Thumbs.db

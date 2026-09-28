@@ -1,0 +1,16 @@
+# Shorts Kit: Python dependencies
+# pip install -r requirements.txt
+# then, for site and repo screenshots: python -m playwright install chromium
+
+edge-tts>=7.0          # free voiceover with word timings
+Pillow                 # thumbnails
+playwright             # website screenshots
+markdown               # renders READMEs for repo screenshots
+
+# YouTube upload
+google-api-python-client
+google-auth
+google-auth-oauthlib
+
+# Optional: premium voice (--engine openai)
+openai
