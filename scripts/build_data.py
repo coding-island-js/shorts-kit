@@ -141,24 +141,26 @@ def wire_visuals(slides, slug):
     clips = [c["file"] for c in read_json(manifest)["clips"]] if manifest.is_file() else []
     shot_dir = wd / "shots"
     shots = sorted(p.name for p in shot_dir.glob("*.png")) if shot_dir.is_dir() else []
-    order = {}  # section index -> nth visual section, so each section keeps one clip
+    # Each section keeps one visual. Clips and screenshots count separately, so a
+    # shot: section doesn't use up a BROLL keyword meant for the next section.
+    clip_of, shot_of = {}, {}
     for s in slides:
         shot = s.pop("_shot", None)
         sec = s.pop("_sec", None)
         if s["section"] == "CTA":
             continue
-        n = order.setdefault(sec, len(order))
         if shot and not (shot_dir / shot).is_file():
-            print(f"  WARNING: shot:{shot} not in work/{slug}/shots/, using the next screenshot instead")
-            shot = shots[n % len(shots)] if shots else None
+            print(f"  WARNING: shot:{shot} not in work/{slug}/shots/, using the next visual instead")
+            shot = None
         if shot:
             s["backgroundImage"] = stage(shot_dir / shot, slug, f"shots/{shot}")
         elif clips:
-            clip = clips[n % len(clips)]
+            clip = clips[clip_of.setdefault(sec, len(clip_of)) % len(clips)]
             s["backgroundVideo"] = stage(wd / "broll" / clip, slug, f"broll/{clip}")
             s["backgroundVideoStart"] = 0
         elif shots:
-            s["backgroundImage"] = stage(shot_dir / shots[n % len(shots)], slug, f"shots/{shots[n % len(shots)]}")
+            pick = shots[shot_of.setdefault(sec, len(shot_of)) % len(shots)]
+            s["backgroundImage"] = stage(shot_dir / pick, slug, f"shots/{pick}")
     return len(clips), len(shots)
 
 
