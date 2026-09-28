@@ -7,7 +7,11 @@
     "text": "#FFFFFF",
     "textMuted": "#D1D5DB",
     "highlight": "#F59E0B",
-    "gradientColors": ["#111827", "#1F2937", "#374151"],
+    "gradientColors": [
+      "#111827",
+      "#1F2937",
+      "#374151"
+    ],
     "cta": "",
     "ctaUrl": "",
     "ctaSubtext": ""
@@ -20,9 +24,30 @@
     "text": "#FFFFFF",
     "textMuted": "#C7D2E8",
     "highlight": "#5B8DFF",
-    "gradientColors": ["#0F1C33", "#15233B", "#1C3A6B"],
+    "gradientColors": [
+      "#0F1C33",
+      "#15233B",
+      "#1C3A6B"
+    ],
     "cta": "acmenotes.example",
     "ctaUrl": "https://acmenotes.example/",
     "ctaSubtext": "Try it free"
+  },
+  "shorts-kit": {
+    "name": "Shorts Kit",
+    "primary": "#0B8E96",
+    "accent": "#2DD4BF",
+    "bg": "#0B1416",
+    "text": "#FFFFFF",
+    "textMuted": "#CFE7E8",
+    "highlight": "#2DD4BF",
+    "gradientColors": [
+      "#0B1416",
+      "#0E2A2E",
+      "#0B8E96"
+    ],
+    "cta": "github.com/coding-island-js/shorts-kit",
+    "ctaUrl": "https://github.com/coding-island-js/shorts-kit",
+    "ctaSubtext": "Free. Fork it."
   }
 }

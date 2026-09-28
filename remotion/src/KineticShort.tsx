@@ -60,6 +60,12 @@ const runOpacity = (frame: number, run: BgRun, peak: number) => {
   });
 };
 
+const pushIn = (frame: number, run: BgRun) =>
+  interpolate(frame, [run.startFrame, run.startFrame + run.durationInFrames], [1.0, 1.08], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+
 export const KineticShort: React.FC<KineticVideoData> = (data) => {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
@@ -75,79 +81,38 @@ export const KineticShort: React.FC<KineticVideoData> = (data) => {
         <GradientBackground colors={brand.gradientColors} />
       )}
 
-      {/* Layer 2: per-slide b-roll clip or screenshot, slow push-in */}
-      {backgroundRuns(data.slides).map((slide, i) => {
-        const progress = interpolate(
-          frame,
-          [slide.startFrame, slide.startFrame + slide.durationInFrames],
-          [0, 1],
-          { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
-        );
-        const zoom = interpolate(progress, [0, 1], [1.0, 1.08]);
-
-        return (
-          <Sequence key={`bg-${i}`} from={slide.startFrame} durationInFrames={slide.durationInFrames}>
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                opacity: runOpacity(frame, slide, slide.backgroundImage ? 1 : 0.85),
-                overflow: 'hidden',
-              }}
-            >
-              {slide.backgroundVideo ? (
-                <OffthreadVideo
-                  src={staticFile(slide.backgroundVideo)}
-                  startFrom={Math.round((slide.backgroundVideoStart || 0) * fps)}
-                  muted
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    transform: `scale(${zoom})`,
-                    filter: data.animatedBg ? 'contrast(1.12) saturate(1.12) brightness(0.8)' : undefined,
-                  }}
-                />
-              ) : (
-                // Screenshots are usually wider than 9:16. Show the whole thing as a
-                // floating card over a blurred copy of itself instead of cropping it.
-                <>
-                  <Img
-                    src={staticFile(slide.backgroundImage!)}
-                    style={{
-                      position: 'absolute',
-                      inset: 0,
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      filter: 'blur(40px) brightness(0.45)',
-                      transform: 'scale(1.2)',
-                    }}
-                  />
-                  <div
-                    style={{
-                      position: 'absolute',
-                      left: 60,
-                      right: 60,
-                      top: '12%',
-                      height: '46%',
-                      borderRadius: 28,
-                      overflow: 'hidden',
-                      boxShadow: '0 30px 80px rgba(0,0,0,0.55)',
-                      transform: `scale(${zoom})`,
-                    }}
-                  >
-                    <Img
-                      src={staticFile(slide.backgroundImage!)}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }}
-                    />
-                  </div>
-                </>
-              )}
-            </div>
-          </Sequence>
-        );
-      })}
+      {/* Layer 2: b-roll clip, or a blurred copy of the screenshot, slow push-in */}
+      {backgroundRuns(data.slides).map((run, i) => (
+        <Sequence key={`bg-${i}`} from={run.startFrame} durationInFrames={run.durationInFrames}>
+          <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', opacity: runOpacity(frame, run, run.backgroundImage ? 1 : 0.85) }}>
+            {run.backgroundVideo ? (
+              <OffthreadVideo
+                src={staticFile(run.backgroundVideo)}
+                startFrom={Math.round((run.backgroundVideoStart || 0) * fps)}
+                muted
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  transform: `scale(${pushIn(frame, run)})`,
+                  filter: data.animatedBg ? 'contrast(1.12) saturate(1.12) brightness(0.8)' : undefined,
+                }}
+              />
+            ) : (
+              <Img
+                src={staticFile(run.backgroundImage!)}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  filter: 'blur(40px) brightness(0.45)',
+                  transform: 'scale(1.2)',
+                }}
+              />
+            )}
+          </div>
+        </Sequence>
+      ))}
 
       {/* Darkening overlay so white text reads on any footage */}
       <div
@@ -168,6 +133,34 @@ export const KineticShort: React.FC<KineticVideoData> = (data) => {
           }}
         />
       )}
+
+      {/* Screenshots are usually wider than 9:16. Show the whole thing as a floating
+          card above the overlays instead of cropping it, so it stays bright. */}
+      {backgroundRuns(data.slides)
+        .filter((run) => run.backgroundImage)
+        .map((run, i) => (
+          <Sequence key={`card-${i}`} from={run.startFrame} durationInFrames={run.durationInFrames}>
+            <div
+              style={{
+                position: 'absolute',
+                left: 60,
+                right: 60,
+                top: '12%',
+                height: '46%',
+                borderRadius: 28,
+                overflow: 'hidden',
+                boxShadow: '0 30px 80px rgba(0,0,0,0.55)',
+                opacity: runOpacity(frame, run, 1),
+                transform: `scale(${pushIn(frame, run)})`,
+              }}
+            >
+              <Img
+                src={staticFile(run.backgroundImage!)}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }}
+              />
+            </div>
+          </Sequence>
+        ))}
 
       {/* Layer 3: captions — word-by-word chunks, or one phrase per slide */}
       {data.wordCaptions && data.captions && data.captions.length > 0 ? (

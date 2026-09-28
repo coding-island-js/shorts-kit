@@ -24,7 +24,7 @@ from common import WORK, load_env  # noqa: E402
 
 
 def step(name, *args):
-    print(f"\n== {name} ==")
+    print(f"\n== {name} ==", flush=True)
     cmd = [sys.executable, str(ROOT / "scripts" / f"{name}.py"), *args]
     env = {**os.environ, "PYTHONIOENCODING": "utf-8"}
     if subprocess.run(cmd, cwd=ROOT, env=env).returncode != 0:
@@ -61,9 +61,9 @@ def main():
 
     has_broll_key = os.environ.get("PEXELS_API_KEY") or os.environ.get("PIXABAY_API_KEY")
     if a.no_broll:
-        print("\n== fetch_broll == skipped (--no-broll)")
+        print("\n== fetch_broll == skipped (--no-broll)", flush=True)
     elif not has_broll_key:
-        print("\n== fetch_broll == skipped: no PEXELS_API_KEY in .env (free at pexels.com/api)")
+        print("\n== fetch_broll == skipped: no PEXELS_API_KEY in .env (free at pexels.com/api)", flush=True)
     else:
         step("fetch_broll", slug, *(["--keywords", a.keywords] if a.keywords else []))
 

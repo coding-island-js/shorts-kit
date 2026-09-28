@@ -108,25 +108,29 @@ def shoot_url(url, out_dir, max_shots):
 def shoot_html(html, out_dir, max_shots, start):
     from playwright.sync_api import sync_playwright
 
+    # Load from a file, not set_content, so the <base> tag can resolve the README's images.
+    html_path = out_dir.parent / "readme.html"
+    html_path.write_text(html, encoding="utf-8")
     with sync_playwright() as p:
         browser = p.chromium.launch()
         page = browser.new_page(viewport=VIEWPORT, device_scale_factor=2)
-        page.set_content(html, wait_until="load")
+        page.goto(html_path.as_uri(), wait_until="networkidle")
         shots = capture_page(page, out_dir, max_shots, prefix_start=start, first="readme")
         browser.close()
     return shots
 
 
-def readme_html(md_text):
+def readme_html(md_text, base):
     import markdown
-    body = markdown.markdown(md_text, extensions=["fenced_code", "tables"])
-    return f"<html><head><style>{README_CSS}</style></head><body><main>{body}</main></body></html>"
+    body = markdown.markdown(md_text, extensions=["fenced_code", "tables", "md_in_html"])
+    return (f'<html><head><base href="{base}"><style>{README_CSS}</style></head>'
+            f"<body><main>{body}</main></body></html>")
 
 
 def from_repo(target, out_dir, max_shots):
     """GitHub URL or local folder. Returns (facts, shots, readme_text)."""
     gh = re.match(r"https?://github\.com/([^/]+)/([^/#?]+)", target)
-    facts, homepage, readme = {}, "", ""
+    facts, homepage, readme, base = {}, "", "", ""
     if gh:
         owner, repo = gh.group(1), gh.group(2).removesuffix(".git")
         try:
@@ -141,6 +145,7 @@ def from_repo(target, out_dir, max_shots):
         for name in ("README.md", "readme.md", "README.MD"):
             try:
                 readme = fetch_text(f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{name}")
+                base = f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/"
                 break
             except Exception:
                 continue
@@ -151,6 +156,7 @@ def from_repo(target, out_dir, max_shots):
         readme_path = next((p for p in root.iterdir() if p.name.lower() == "readme.md"), None)
         readme = readme_path.read_text(encoding="utf-8", errors="replace") if readme_path else ""
         facts = {"title": root.name}
+        base = root.as_uri() + "/"
         pkg = root / "package.json"
         if pkg.is_file():
             data = json.loads(pkg.read_text(encoding="utf-8"))
@@ -169,7 +175,7 @@ def from_repo(target, out_dir, max_shots):
         facts["homepage"] = homepage
         facts["site"] = site_facts
     if readme and len(shots) < max_shots:
-        shots += shoot_html(readme_html(readme), out_dir, max_shots - len(shots), start=len(shots) + 1)
+        shots += shoot_html(readme_html(readme, base), out_dir, max_shots - len(shots), start=len(shots) + 1)
     return facts, shots, readme
 
 

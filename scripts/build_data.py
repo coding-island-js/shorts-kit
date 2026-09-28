@@ -196,7 +196,8 @@ def main():
         "slides": slides,
         "brand": load_brand(meta["brand"]),
         "wordCaptions": args.premium,
-        "animatedBg": args.premium,
+        # With no footage or screenshots a static gradient looks unfinished, so animate it.
+        "animatedBg": args.premium or not (n_clips or n_shots),
         "showProgress": args.premium,
         "captions": caption_chunks(words, meta["script"], args.caption_words, cta["startFrame"]) if args.premium else [],
     }
